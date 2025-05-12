@@ -20,5 +20,9 @@ PLATFORMS : XILINX FPGA BOARD
 EDITORS : VIVADO DESIGN SUITES - XILINX
           QUARTUS PRIME - FOR INTEL FPGA
           VS CODE - FOR VERILOG/VHDL SYNTAX SUPPORT
+
+#OUTPUT
+
+![Image](https://github.com/user-attachments/assets/bf79bba0-b89c-4110-a189-38ecb7305c3b)
           
                 
