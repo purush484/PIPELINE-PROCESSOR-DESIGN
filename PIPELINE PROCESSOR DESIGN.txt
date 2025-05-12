@@ -1,0 +1,72 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity Pipeline_Processor is
+    Port (
+        clk     : in  std_logic;
+        reset   : in  std_logic;
+        data_out: out std_logic_vector(7 downto 0)
+    );
+end Pipeline_Processor;
+
+architecture Behavioral of Pipeline_Processor is
+
+    -- Instruction format: opcode (2 bits), rs, rt, rd (2 bits each)
+    type instr_mem_type is array(0 to 15) of std_logic_vector(7 downto 0);
+    signal instr_mem : instr_mem_type := (
+        x"20", x"41", x"62", x"83", -- dummy instructions
+        others => (others => '0')
+    );
+
+    -- Register file: 4 general-purpose 8-bit registers
+    type reg_file_type is array(0 to 3) of std_logic_vector(7 downto 0);
+    signal reg_file : reg_file_type := (others => (others => '0'));
+
+    -- Program counter
+    signal PC : integer := 0;
+
+    -- Pipeline registers
+    signal IF_ID_instr : std_logic_vector(7 downto 0);
+    signal ID_EX_rs, ID_EX_rt, ID_EX_rd : std_logic_vector(7 downto 0);
+    signal EX_MEM_result : std_logic_vector(7 downto 0);
+    signal MEM_WB_result : std_logic_vector(7 downto 0);
+
+begin
+    process(clk, reset)
+    begin
+        if reset = '1' then
+            PC <= 0;
+            IF_ID_instr <= (others => '0');
+            ID_EX_rs <= (others => '0');
+            ID_EX_rt <= (others => '0');
+            ID_EX_rd <= (others => '0');
+            EX_MEM_result <= (others => '0');
+            MEM_WB_result <= (others => '0');
+        elsif rising_edge(clk) then
+            -- IF Stage
+            IF_ID_instr <= instr_mem(PC);
+            PC <= PC + 1;
+
+            -- ID Stage
+            ID_EX_rs <= reg_file(to_integer(unsigned(IF_ID_instr(5 downto 4))));
+            ID_EX_rt <= reg_file(to_integer(unsigned(IF_ID_instr(3 downto 2))));
+            ID_EX_rd <= IF_ID_instr(1 downto 0);
+
+            -- EX Stage (example: addition)
+            EX_MEM_result <= std_logic_vector(
+                unsigned(ID_EX_rs) + unsigned(ID_EX_rt)
+            );
+
+            -- MEM Stage (no actual memory access in this skeleton)
+            MEM_WB_result <= EX_MEM_result;
+
+            -- WB Stage
+            reg_file(to_integer(unsigned(ID_EX_rd))) <= MEM_WB_result;
+        end if;
+    end process;
+
+    -- Output
+    data_out <= MEM_WB_result;
+
+end Behavioral;
